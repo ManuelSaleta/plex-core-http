@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Plex.Core.Http.Common;
 using Plex.Core.Http.Handlers;
 using Plex.Core.Http.Models;
+using Plex.Core.Http.Serialization;
 
 namespace Plex.Core.Http;
 
@@ -21,12 +22,7 @@ public class PlexClient : IPlexClient, IDisposable
     /// <summary>
     /// Default JSON serializer options configured for Plex API responses.
     /// </summary>
-    public static readonly JsonSerializerOptions DefaultJsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        NumberHandling = JsonNumberHandling.AllowReadingFromString,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-    };
+    public static readonly JsonSerializerOptions DefaultJsonOptions = PlexJsonSerializer.DefaultOptions;
 
     /// <inheritdoc />
     public PlexClientOptions Options { get; }
@@ -154,7 +150,7 @@ public class PlexClient : IPlexClient, IDisposable
     /// <inheritdoc />
     public Task<IReadOnlyList<PlexMetadataItem>> GetAlbumCollectionsAsync(int sectionId, CancellationToken cancellationToken = default)
     {
-        return GetCollectionsAsync(sectionId, "album", cancellationToken);
+        return GetCollectionsAsync(sectionId, PlexSubtype.Album, cancellationToken);
     }
 
     /// <inheritdoc />

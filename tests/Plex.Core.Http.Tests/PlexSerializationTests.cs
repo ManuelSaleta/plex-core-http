@@ -81,4 +81,27 @@ public class PlexSerializationTests
         var part = Assert.Single(media.Part!);
         Assert.Equal("/music/Weird Al/Mandatory Fun/01 Handy.mp3", part.File);
     }
+
+    [Fact]
+    public void PlexJsonSerializer_RoundTrip()
+    {
+        var item = new PlexMetadataItem
+        {
+            RatingKey = "123",
+            Title = "Test Album",
+            Type = "album",
+            Subtype = Common.PlexSubtype.Album,
+            Year = 2026
+        };
+
+        var json = Serialization.PlexJsonSerializer.Serialize(item);
+        Assert.Contains("\"ratingKey\":\"123\"", json);
+        Assert.Contains("\"title\":\"Test Album\"", json);
+
+        var deserialized = Serialization.PlexJsonSerializer.Deserialize<PlexMetadataItem>(json);
+        Assert.NotNull(deserialized);
+        Assert.Equal(123, deserialized.Id);
+        Assert.Equal("Test Album", deserialized.Title);
+        Assert.Equal(Common.PlexSubtype.Album, deserialized.Subtype);
+    }
 }

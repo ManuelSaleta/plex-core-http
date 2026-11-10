@@ -9,11 +9,18 @@ on:
         description: 'Optional package version override (leave empty to use csproj version)'
         required: false
         type: string
+      nuget_user:
+        description: 'NuGet.org account/organization name (defaults to NUGET_USERNAME repo var or ManuelSaleta)'
+        required: false
+        type: string
 
 jobs:
   publish:
     name: Build, Pack & Push NuGet
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
     - name: Checkout repository
@@ -41,9 +48,15 @@ jobs:
           dotnet pack src/Plex.Core.Http/Plex.Core.Http.csproj --no-build --configuration Release --output ./nupkg
         fi
 
+    - name: Authenticate with NuGet.org (Trusted Publishing)
+      id: login
+      uses: NuGet/login@v1
+      with:
+        user: ${{ inputs.nuget_user || vars.NUGET_USERNAME || 'ManuelSaleta' }}
+
     - name: Push to NuGet.org
       run: |
         dotnet nuget push ./nupkg/*.nupkg \
-          --api-key ${{ secrets.NUGET_API_KEY }} \
+          --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
           --source https://api.nuget.org/v3/index.json \
           --skip-duplicate

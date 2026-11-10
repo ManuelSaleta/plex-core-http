@@ -10,7 +10,7 @@ on:
         required: false
         type: string
       nuget_user:
-        description: 'NuGet.org account/organization name (defaults to NUGET_USERNAME repo var or ManuelSaleta)'
+        description: 'NuGet.org account/organization name (defaults to NUGET_USERNAME repo var or ChaoticDreams)'
         required: false
         type: string
 
@@ -52,7 +52,7 @@ jobs:
       id: login
       uses: NuGet/login@v1
       with:
-        user: ${{ inputs.nuget_user || vars.NUGET_USERNAME || 'ManuelSaleta' }}
+        user: ${{ inputs.nuget_user || vars.NUGET_USERNAME || 'ChaoticDreams' }}
 
     - name: Push to NuGet.org
       run: |

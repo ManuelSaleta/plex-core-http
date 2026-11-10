@@ -1,0 +1,52 @@
+name: Publish to NuGet
+
+on:
+  release:
+    types: [ published ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Optional package version override (leave empty to use csproj version)'
+        required: false
+        type: string
+
+jobs:
+  publish:
+    name: Build, Pack & Push NuGet
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: |
+          8.0.x
+          9.0.x
+          10.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build Release
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Run Tests
+      run: dotnet test --no-build --configuration Release --verbosity normal
+
+    - name: Pack NuGet Package
+      run: |
+        if [ -n "${{ github.event.inputs.version }}" ]; then
+          dotnet pack src/Plex.Core.Http/Plex.Core.Http.csproj --no-build --configuration Release -p:PackageVersion=${{ github.event.inputs.version }} --output ./nupkg
+        else
+          dotnet pack src/Plex.Core.Http/Plex.Core.Http.csproj --no-build --configuration Release --output ./nupkg
+        fi
+
+    - name: Push to NuGet.org
+      run: |
+        dotnet nuget push ./nupkg/*.nupkg \
+          --api-key ${{ secrets.NUGET_API_KEY }} \
+          --source https://api.nuget.org/v3/index.json \
+          --skip-duplicate

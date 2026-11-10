@@ -18,6 +18,7 @@ jobs:
   publish:
     name: Build, Pack & Push NuGet
     runs-on: ubuntu-latest
+    environment: dev
     permissions:
       contents: read
       id-token: write

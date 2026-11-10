@@ -6,6 +6,10 @@ namespace Plex.Core.Http;
 public class PlexClientOptions
 {
     /// <summary>
+    /// The name used for binding the configuration options json obj for DI.
+    /// </summary>
+    public const string SectionName = "PlexClientOptions";
+    /// <summary>
     /// Base URL for the Plex Media Server instance (e.g. "http://192.168.1.100:32400" or direct plex URL).
     /// </summary>
     public Uri? ServerUri { get; set; }

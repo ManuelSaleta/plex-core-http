@@ -1,25 +1,25 @@
 using System.Net;
+using FluentAssertions;
 using Plex.Core.Http.Common;
-using Plex.Core.Http.Models;
-using Xunit;
+
 
 namespace Plex.Core.Http.Tests;
 
 public class PlexClientTests
 {
-    private readonly PlexClientOptions _options = new()
-    {
-        ServerUrl = "http://localhost:32400",
-        Token = "secret-token-xyz",
-        ClientIdentifier = "test-client-id-123",
-        Product = "PlexCoreHttpTests",
-        Version = "1.0.0"
-    };
+  private readonly PlexClientOptions _options = new()
+  {
+    ServerUrl = "http://localhost:32400",
+    Token = "secret-token-xyz",
+    ClientIdentifier = "test-client-id-123",
+    Product = "PlexCoreHttpTests",
+    Version = "1.0.0"
+  };
 
-    [Fact]
-    public async Task GetIdentityAsync_SendsCorrectHeaders_AndDeserializes()
-    {
-        const string json = """
+  [Fact]
+  public async Task GetIdentityAsync_SendsCorrectHeaders_AndDeserializes()
+  {
+    const string json = """
         {
           "MediaContainer": {
             "size": 1,
@@ -30,28 +30,28 @@ public class PlexClientTests
         }
         """;
 
-        var mock = new MockHttpMessageHandler(json);
-        using var httpClient = new HttpClient(mock) { BaseAddress = _options.ServerUri };
-        using var client = new PlexClient(httpClient, _options);
+    var mock = new MockHttpMessageHandler(json);
+    using var httpClient = new HttpClient(mock) { BaseAddress = _options.ServerUri };
+    using var client = new PlexClient(httpClient, _options);
 
-        var identity = await client.GetIdentityAsync();
+    var identity = await client.GetIdentityAsync();
 
-        Assert.NotNull(identity);
-        Assert.Equal("abcdef123456", identity.MachineIdentifier);
-        Assert.Equal("1.40.2.8395", identity.Version);
-        Assert.True(identity.Claimed);
+    identity.Should().NotBeNull();
+    identity!.MachineIdentifier.Should().Be("abcdef123456");
+    identity.Version.Should().Be("1.40.2.8395");
+    identity.Claimed.Should().BeTrue();
 
-        Assert.NotNull(mock.LastRequest);
-        Assert.Equal("/identity", mock.LastRequest.RequestUri?.AbsolutePath);
-        Assert.Equal("secret-token-xyz", mock.LastRequest.Headers.GetValues("X-Plex-Token").First());
-        Assert.Equal("test-client-id-123", mock.LastRequest.Headers.GetValues("X-Plex-Client-Identifier").First());
-        Assert.Equal("PlexCoreHttpTests", mock.LastRequest.Headers.GetValues("X-Plex-Product").First());
-    }
+    mock.LastRequest.Should().NotBeNull();
+    mock.LastRequest!.RequestUri?.AbsolutePath.Should().Be("/identity");
+    mock.LastRequest.Headers.GetValues("X-Plex-Token").First().Should().Be("secret-token-xyz");
+    mock.LastRequest.Headers.GetValues("X-Plex-Client-Identifier").First().Should().Be("test-client-id-123");
+    mock.LastRequest.Headers.GetValues("X-Plex-Product").First().Should().Be("PlexCoreHttpTests");
+  }
 
-    [Fact]
-    public async Task GetSectionsAsync_ReturnsParsedSections()
-    {
-        const string json = """
+  [Fact]
+  public async Task GetSectionsAsync_ReturnsParsedSections()
+  {
+    const string json = """
         {
           "MediaContainer": {
             "size": 2,
@@ -73,26 +73,26 @@ public class PlexClientTests
         }
         """;
 
-        var mock = new MockHttpMessageHandler(json);
-        using var httpClient = new HttpClient(mock) { BaseAddress = _options.ServerUri };
-        using var client = new PlexClient(httpClient, _options);
+    var mock = new MockHttpMessageHandler(json);
+    using var httpClient = new HttpClient(mock) { BaseAddress = _options.ServerUri };
+    using var client = new PlexClient(httpClient, _options);
 
-        var sections = await client.GetSectionsAsync();
+    var sections = await client.GetSectionsAsync();
 
-        Assert.NotNull(sections);
-        Assert.Equal(2, sections.Count);
-        Assert.Equal(1, sections[0].Id);
-        Assert.Equal("Movies", sections[0].Title);
-        Assert.Equal("movie", sections[0].Type);
-        Assert.Equal(3, sections[1].Id);
-        Assert.Equal("Music", sections[1].Title);
-        Assert.Equal("artist", sections[1].Type);
-    }
+    sections.Should().NotBeNull();
+    sections.Should().HaveCount(2);
+    sections[0].Id.Should().Be(1);
+    sections[0].Title.Should().Be("Movies");
+    sections[0].Type.Should().Be("movie");
+    sections[1].Id.Should().Be(3);
+    sections[1].Title.Should().Be("Music");
+    sections[1].Type.Should().Be("artist");
+  }
 
-    [Fact]
-    public async Task GetAlbumCollectionsAsync_AppendsSubtypeAlbumQuery()
-    {
-        const string json = """
+  [Fact]
+  public async Task GetAlbumCollectionsAsync_AppendsSubtypeAlbumQuery()
+  {
+    const string json = """
         {
           "MediaContainer": {
             "size": 1,
@@ -110,28 +110,28 @@ public class PlexClientTests
         }
         """;
 
-        var mock = new MockHttpMessageHandler(json);
-        using var httpClient = new HttpClient(mock) { BaseAddress = _options.ServerUri };
-        using var client = new PlexClient(httpClient, _options);
+    var mock = new MockHttpMessageHandler(json);
+    using var httpClient = new HttpClient(mock) { BaseAddress = _options.ServerUri };
+    using var client = new PlexClient(httpClient, _options);
 
-        var collections = await client.GetAlbumCollectionsAsync(3);
+    var collections = await client.GetAlbumCollectionsAsync(3);
 
-        Assert.NotNull(collections);
-        Assert.Single(collections);
-        Assert.Equal(901, collections[0].Id);
-        Assert.Equal("Soundtracks", collections[0].Title);
-        Assert.Equal("album", collections[0].Subtype);
-        Assert.Equal(5, collections[0].ChildCount);
+    collections.Should().NotBeNull();
+    collections.Should().ContainSingle();
+    collections[0].Id.Should().Be(901);
+    collections[0].Title.Should().Be("Soundtracks");
+    collections[0].Subtype.Should().Be("album");
+    collections[0].ChildCount.Should().Be(5);
 
-        Assert.NotNull(mock.LastRequest);
-        Assert.Equal("/library/sections/3/collections", mock.LastRequest.RequestUri?.AbsolutePath);
-        Assert.Contains("subtype=album", mock.LastRequest.RequestUri?.Query);
-    }
+    mock.LastRequest.Should().NotBeNull();
+    mock.LastRequest!.RequestUri?.AbsolutePath.Should().Be("/library/sections/3/collections");
+    mock.LastRequest.RequestUri?.Query.Should().Contain("subtype=album");
+  }
 
-    [Fact]
-    public async Task GetAlbumsAsync_CallsCorrectEndpoint()
-    {
-        const string json = """
+  [Fact]
+  public async Task GetAlbumsAsync_CallsCorrectEndpoint()
+  {
+    const string json = """
         {
           "MediaContainer": {
             "size": 1,
@@ -149,27 +149,27 @@ public class PlexClientTests
         }
         """;
 
-        var mock = new MockHttpMessageHandler(json);
-        using var httpClient = new HttpClient(mock) { BaseAddress = _options.ServerUri };
-        using var client = new PlexClient(httpClient, _options);
+    var mock = new MockHttpMessageHandler(json);
+    using var httpClient = new HttpClient(mock) { BaseAddress = _options.ServerUri };
+    using var client = new PlexClient(httpClient, _options);
 
-        var albums = await client.GetAlbumsAsync(3);
+    var albums = await client.GetAlbumsAsync(3);
 
-        Assert.NotNull(albums);
-        Assert.Single(albums);
-        Assert.Equal(456, albums[0].Id);
-        Assert.Equal("Abbey Road", albums[0].Title);
-        Assert.Equal("The Beatles", albums[0].ParentTitle);
-        Assert.Equal(1969, albums[0].Year);
+    albums.Should().NotBeNull();
+    albums.Should().ContainSingle();
+    albums[0].Id.Should().Be(456);
+    albums[0].Title.Should().Be("Abbey Road");
+    albums[0].ParentTitle.Should().Be("The Beatles");
+    albums[0].Year.Should().Be(1969);
 
-        Assert.NotNull(mock.LastRequest);
-        Assert.Equal("/library/sections/3/albums", mock.LastRequest.RequestUri?.AbsolutePath);
-    }
+    mock.LastRequest.Should().NotBeNull();
+    mock.LastRequest!.RequestUri?.AbsolutePath.Should().Be("/library/sections/3/albums");
+  }
 
-    [Fact]
-    public async Task GetCollectionItemsAsync_CallsCorrectPath()
-    {
-        const string json = """
+  [Fact]
+  public async Task GetCollectionItemsAsync_CallsCorrectPath()
+  {
+    const string json = """
         {
           "MediaContainer": {
             "size": 2,
@@ -189,25 +189,25 @@ public class PlexClientTests
         }
         """;
 
-        var mock = new MockHttpMessageHandler(json);
-        using var httpClient = new HttpClient(mock) { BaseAddress = _options.ServerUri };
-        using var client = new PlexClient(httpClient, _options);
+    var mock = new MockHttpMessageHandler(json);
+    using var httpClient = new HttpClient(mock) { BaseAddress = _options.ServerUri };
+    using var client = new PlexClient(httpClient, _options);
 
-        var items = await client.GetCollectionItemsAsync(901);
+    var items = await client.GetCollectionItemsAsync(901);
 
-        Assert.NotNull(items);
-        Assert.Equal(2, items.Count);
-        Assert.Equal("Album 1", items[0].Title);
-        Assert.Equal("Album 2", items[1].Title);
+    items.Should().NotBeNull();
+    items.Should().HaveCount(2);
+    items[0].Title.Should().Be("Album 1");
+    items[1].Title.Should().Be("Album 2");
 
-        Assert.NotNull(mock.LastRequest);
-        Assert.Equal("/library/collections/901/items", mock.LastRequest.RequestUri?.AbsolutePath);
-    }
+    mock.LastRequest.Should().NotBeNull();
+    mock.LastRequest!.RequestUri?.AbsolutePath.Should().Be("/library/collections/901/items");
+  }
 
-    [Fact]
-    public async Task CreateCollectionAsync_ConstructsPostQueryAndParsesResult()
-    {
-        const string json = """
+  [Fact]
+  public async Task CreateCollectionAsync_ConstructsPostQueryAndParsesResult()
+  {
+    const string json = """
         {
           "MediaContainer": {
             "size": 1,
@@ -223,47 +223,48 @@ public class PlexClientTests
         }
         """;
 
-        var mock = new MockHttpMessageHandler(json);
-        using var httpClient = new HttpClient(mock) { BaseAddress = _options.ServerUri };
-        using var client = new PlexClient(httpClient, _options);
+    var mock = new MockHttpMessageHandler(json);
+    using var httpClient = new HttpClient(mock) { BaseAddress = _options.ServerUri };
+    using var client = new PlexClient(httpClient, _options);
 
-        var created = await client.CreateCollectionAsync(3, "Rock Classics", PlexMetadataType.Album);
+    var created = await client.CreateCollectionAsync(3, "Rock Classics", PlexMetadataType.Album);
 
-        Assert.NotNull(created);
-        Assert.Equal(999, created.Id);
-        Assert.Equal("Rock Classics", created.Title);
+    created.Should().NotBeNull();
+    created!.Id.Should().Be(999);
+    created.Title.Should().Be("Rock Classics");
 
-        Assert.NotNull(mock.LastRequest);
-        Assert.Equal(HttpMethod.Post, mock.LastRequest.Method);
-        Assert.Equal("/library/collections", mock.LastRequest.RequestUri?.AbsolutePath);
-        Assert.Contains("sectionId=3", mock.LastRequest.RequestUri?.Query);
-        Assert.Contains("title=Rock%20Classics", mock.LastRequest.RequestUri?.Query);
-        Assert.Contains("type=9", mock.LastRequest.RequestUri?.Query);
-    }
+    mock.LastRequest.Should().NotBeNull();
+    mock.LastRequest!.Method.Should().Be(HttpMethod.Post);
+    mock.LastRequest.RequestUri?.AbsolutePath.Should().Be("/library/collections");
+    mock.LastRequest.RequestUri?.Query.Should().Contain("sectionId=3");
+    mock.LastRequest.RequestUri?.Query.Should().Contain("title=Rock%20Classics");
+    mock.LastRequest.RequestUri?.Query.Should().Contain("type=9");
+  }
 
-    [Fact]
-    public async Task RefreshSectionAsync_ReturnsTrueOnSuccess()
-    {
-        var mock = new MockHttpMessageHandler("", HttpStatusCode.OK);
-        using var httpClient = new HttpClient(mock) { BaseAddress = _options.ServerUri };
-        using var client = new PlexClient(httpClient, _options);
+  [Fact]
+  public async Task RefreshSectionAsync_ReturnsTrueOnSuccess()
+  {
+    var mock = new MockHttpMessageHandler("", HttpStatusCode.OK);
+    using var httpClient = new HttpClient(mock) { BaseAddress = _options.ServerUri };
+    using var client = new PlexClient(httpClient, _options);
 
-        var result = await client.RefreshSectionAsync(1);
+    var result = await client.RefreshSectionAsync(1);
 
-        Assert.True(result);
-        Assert.NotNull(mock.LastRequest);
-        Assert.Equal("/library/sections/1/refresh", mock.LastRequest.RequestUri?.AbsolutePath);
-    }
+    result.Should().BeTrue();
+    mock.LastRequest.Should().NotBeNull();
+    mock.LastRequest!.RequestUri?.AbsolutePath.Should().Be("/library/sections/1/refresh");
+  }
 
-    [Fact]
-    public async Task ServerError_ThrowsPlexException()
-    {
-        var mock = new MockHttpMessageHandler("Internal Server Error", HttpStatusCode.InternalServerError);
-        using var httpClient = new HttpClient(mock) { BaseAddress = _options.ServerUri };
-        using var client = new PlexClient(httpClient, _options);
+  [Fact]
+  public async Task ServerError_ThrowsPlexException()
+  {
+    var mock = new MockHttpMessageHandler("Internal Server Error", HttpStatusCode.InternalServerError);
+    using var httpClient = new HttpClient(mock) { BaseAddress = _options.ServerUri };
+    using var client = new PlexClient(httpClient, _options);
 
-        var ex = await Assert.ThrowsAsync<PlexException>(() => client.GetIdentityAsync());
-        Assert.Equal(HttpStatusCode.InternalServerError, ex.StatusCode);
-        Assert.Contains("failed with status 500", ex.Message);
-    }
+    var act = () => client.GetIdentityAsync();
+    var ex = await act.Should().ThrowAsync<PlexException>();
+    ex.Which.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
+    ex.Which.Message.Should().Contain("failed with status 500");
+  }
 }

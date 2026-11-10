@@ -2,9 +2,9 @@
 
 [![NuGet Version](https://img.shields.io/nuget/v/Plex.Core.Http.svg?style=flat-square)](https://www.nuget.org/packages/Plex.Core.Http/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
-[![.NET Compatibility](https://img.shields.io/badge/.NET-8.0%20%7C%209.0%20%7C%2010.0-512BD4.svg?style=flat-square)](https://dotnet.microsoft.com/)
+[![.NET Compatibility](https://img.shields.io/badge/.NET-%3E%3D%2010.0-512BD4.svg?style=flat-square)](https://dotnet.microsoft.com/)
 
-A modern, minimal, lightweight, and high-performance .NET `HttpClient` library for communicating with [Plex Media Server](https://www.plex.tv/).
+A modern, minimal, lightweight, and high-performance .NET `HttpClient` library for communicating with [Plex Media Server](https://www.plex.tv/), based on the official [Plex OpenAPI Specification v1.23.3](https://developer.plex.tv/pms/).
 
 Built with modern C# and `System.Text.Json`, `Plex.Core.Http` provides strongly-typed models, idiomatic `IHttpClientFactory` / Dependency Injection support, and automatic Plex header management.
 
@@ -12,8 +12,7 @@ Built with modern C# and `System.Text.Json`, `Plex.Core.Http` provides strongly-
 
 ## Features
 
-- **Modern & Lightweight:** Minimal transitive dependencies, non-blocking asynchronous APIs with `CancellationToken` support throughout.
-- **Multi-targeted:** First-class support for `.NET 8` (LTS), `.NET 9`, and `.NET 10`.
+- **Modern & Lightweight:** Built specifically for modern .NET (`>= 10.0`), minimal transitive dependencies, non-blocking asynchronous APIs with `CancellationToken` support throughout.
 - **First-Class DI Integration:** Registers cleanly with `IServiceCollection.AddPlexClient()` and `IHttpClientFactory`.
 - **Plex Header Management:** Transparently handles required Plex headers (`X-Plex-Token`, `X-Plex-Client-Identifier`, `X-Plex-Product`, `X-Plex-Version`, etc.).
 - **Rich Library & Music Support:** Full support for Library Sections, Media metadata, Scanning/Refresh, Playlists, Sessions, and **Album Collections** (`subtype=album`).
@@ -172,28 +171,28 @@ Console.WriteLine($"Currently active streams: {activeSessions.Count}");
 
 ## API Overview
 
-| Method | Description |
-| :--- | :--- |
-| `GetIdentityAsync()` | Retrieves server machine identifier, version, and claimed state. |
-| `GetServerCapabilitiesAsync()` | Retrieves root `/` server details, friendly name, and features. |
-| `GetSectionsAsync()` | Lists all library sections. |
-| `GetSectionAsync(id)` | Retrieves details for a specific library section. |
-| `RefreshSectionAsync(id)` | Triggers a background scan/refresh of the specified section. |
-| `EmptySectionTrashAsync(id)` | Empties trash items from the library section. |
-| `GetSectionItemsAsync(id, type?)` | Gets all items in a section, optionally filtered by `PlexMetadataType`. |
-| `GetAlbumsAsync(sectionId)` | Gets all albums in a music library section. |
-| `GetCollectionsAsync(id, subtype?)` | Gets collections in a section, optionally filtered by subtype. |
-| `GetAlbumCollectionsAsync(sectionId)` | Dedicated helper to get album collections (`subtype=album`). |
-| `GetCollectionItemsAsync(collectionId)` | Retrieves items contained in a collection. |
-| `CreateCollectionAsync(...)` | Creates a new standard or smart collection. |
-| `DeleteCollectionAsync(...)` | Deletes a collection from a section. |
-| `AddItemToCollectionAsync(...)` | Adds a media item URI to a collection. |
-| `RemoveItemFromCollectionAsync(...)` | Removes a media item from a collection. |
-| `GetMetadataAsync(ratingKey)` | Retrieves full metadata for an item. |
-| `GetMetadataChildrenAsync(ratingKey)` | Gets child items (e.g. tracks of an album, episodes of a season). |
-| `SearchSectionAsync(id, query)` | Searches within a library section. |
-| `GetActiveSessionsAsync()` | Lists currently active playback streams. |
-| `GetAsync<T>(relativeUri)` | Low-level generic GET helper for arbitrary endpoints. |
+| Method                                  | Description                                                             |
+| :-------------------------------------- | :---------------------------------------------------------------------- |
+| `GetIdentityAsync()`                    | Retrieves server machine identifier, version, and claimed state.        |
+| `GetServerCapabilitiesAsync()`          | Retrieves root `/` server details, friendly name, and features.         |
+| `GetSectionsAsync()`                    | Lists all library sections.                                             |
+| `GetSectionAsync(id)`                   | Retrieves details for a specific library section.                       |
+| `RefreshSectionAsync(id)`               | Triggers a background scan/refresh of the specified section.            |
+| `EmptySectionTrashAsync(id)`            | Empties trash items from the library section.                           |
+| `GetSectionItemsAsync(id, type?)`       | Gets all items in a section, optionally filtered by `PlexMetadataType`. |
+| `GetAlbumsAsync(sectionId)`             | Gets all albums in a music library section.                             |
+| `GetCollectionsAsync(id, subtype?)`     | Gets collections in a section, optionally filtered by subtype.          |
+| `GetAlbumCollectionsAsync(sectionId)`   | Dedicated helper to get album collections (`subtype=album`).            |
+| `GetCollectionItemsAsync(collectionId)` | Retrieves items contained in a collection.                              |
+| `CreateCollectionAsync(...)`            | Creates a new standard or smart collection.                             |
+| `DeleteCollectionAsync(...)`            | Deletes a collection from a section.                                    |
+| `AddItemToCollectionAsync(...)`         | Adds a media item URI to a collection.                                  |
+| `RemoveItemFromCollectionAsync(...)`    | Removes a media item from a collection.                                 |
+| `GetMetadataAsync(ratingKey)`           | Retrieves full metadata for an item.                                    |
+| `GetMetadataChildrenAsync(ratingKey)`   | Gets child items (e.g. tracks of an album, episodes of a season).       |
+| `SearchSectionAsync(id, query)`         | Searches within a library section.                                      |
+| `GetActiveSessionsAsync()`              | Lists currently active playback streams.                                |
+| `GetAsync<T>(relativeUri)`              | Low-level generic GET helper for arbitrary endpoints.                   |
 
 ---
 
@@ -217,6 +216,7 @@ dotnet nuget push ./nupkg/Plex.Core.Http.*.nupkg \
 ### 3. Automated via GitHub Actions
 
 This repository includes automated GitHub Actions workflows:
+
 - **`ci.yml`**: Automatically builds and tests pull requests and pushes to `main`.
 - **`publish.yml`**: On creating a GitHub Release (or running manually via `workflow_dispatch`), packages the project and pushes to NuGet using the `NUGET_API_KEY` repository secret.
 

@@ -61,25 +61,30 @@ public class PlexSerializationTests
             json,
             PlexClient.DefaultJsonOptions);
 
-        Assert.NotNull(result?.MediaContainer);
-        Assert.Equal(3, result.MediaContainer.LibrarySectionID);
-        Assert.Equal("Music", result.MediaContainer.LibrarySectionTitle);
+        result?.MediaContainer.Should().NotBeNull();
+        result!.MediaContainer!.LibrarySectionID.Should().Be(3);
+        result.MediaContainer.LibrarySectionTitle.Should().Be("Music");
 
-        var item = Assert.Single(result.MediaContainer.Metadata!);
-        Assert.Equal(265, item.Id);
-        Assert.Equal("Mandatory Fun", item.Title);
-        Assert.Equal("\"Weird Al\" Yankovic", item.ParentTitle);
-        Assert.Equal(2014, item.Year);
-        Assert.Equal(12, item.LeafCount);
+        result.MediaContainer.Metadata.Should().NotBeNull();
+        result.MediaContainer.Metadata.Should().ContainSingle();
+        var item = result.MediaContainer.Metadata![0];
+        item.Id.Should().Be(265);
+        item.Title.Should().Be("Mandatory Fun");
+        item.ParentTitle.Should().Be("\"Weird Al\" Yankovic");
+        item.Year.Should().Be(2014);
+        item.LeafCount.Should().Be(12);
 
-        var genre = Assert.Single(item.Genre!);
-        Assert.Equal("Comedy/Spoken", genre.Tag);
+        item.Genre.Should().NotBeNull();
+        item.Genre.Should().ContainSingle();
+        item.Genre![0].Tag.Should().Be("Comedy/Spoken");
 
-        var media = Assert.Single(item.Media!);
-        Assert.Equal("mp3", media.AudioCodec);
+        item.Media.Should().NotBeNull();
+        item.Media.Should().ContainSingle();
+        item.Media![0].AudioCodec.Should().Be("mp3");
 
-        var part = Assert.Single(media.Part!);
-        Assert.Equal("/music/Weird Al/Mandatory Fun/01 Handy.mp3", part.File);
+        item.Media[0].Part.Should().NotBeNull();
+        item.Media[0].Part.Should().ContainSingle();
+        item.Media[0].Part![0].File.Should().Be("/music/Weird Al/Mandatory Fun/01 Handy.mp3");
     }
 
     [Fact]
@@ -95,13 +100,13 @@ public class PlexSerializationTests
         };
 
         var json = Serialization.PlexJsonSerializer.Serialize(item);
-        Assert.Contains("\"ratingKey\":\"123\"", json);
-        Assert.Contains("\"title\":\"Test Album\"", json);
+        json.Should().Contain("\"ratingKey\":\"123\"");
+        json.Should().Contain("\"title\":\"Test Album\"");
 
         var deserialized = Serialization.PlexJsonSerializer.Deserialize<PlexMetadataItem>(json);
-        Assert.NotNull(deserialized);
-        Assert.Equal(123, deserialized.Id);
-        Assert.Equal("Test Album", deserialized.Title);
-        Assert.Equal(Common.PlexSubtype.Album, deserialized.Subtype);
+        deserialized.Should().NotBeNull();
+        deserialized!.Id.Should().Be(123);
+        deserialized.Title.Should().Be("Test Album");
+        deserialized.Subtype.Should().Be(Common.PlexSubtype.Album);
     }
 }
